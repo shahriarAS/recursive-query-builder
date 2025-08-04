@@ -1,69 +1,37 @@
-# React + TypeScript + Vite
+## Challenge: Recursive Visual Query Builder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Brief
+Build a visual query builder that allows users to create complex nested logical conditions (AND/OR) with drag-and-drop functionality.
 
-Currently, two official plugins are available:
+### Requirements
+- **Visual Structure**: Tree-like interface with nested groups
+- **Drag & Drop**: 
+  - Drag conditions between groups
+  - Drag entire groups to reorder
+  - Drop zones highlight when valid
+- **Recursive Logic**: Support unlimited nesting of AND/OR groups
+- **Interactivity**: 
+  - Add/remove conditions and groups dynamically
+  - Toggle between AND/OR logic for each group
+  - Real-time preview of the generated query
+- **Data Structure**: Maintain a nested object structure representing the query tree
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Visual Layout
+```
+Query Builder
+├── AND Group
+│   ├── [Condition: age > 25] [×]
+│   ├── [Condition: status = "active"] [×]
+│   └── OR Group
+│       ├── [Condition: role = "admin"] [×]
+│       └── [Condition: department = "IT"] [×]
+└── [+ Add Condition] [+ Add Group]
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Constraints
+- No external drag-drop libraries
+- Must handle deep nesting (5+ levels)
+- Query object must be properly structured for recursive evaluation
+- Visual feedback for all drag operations
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
