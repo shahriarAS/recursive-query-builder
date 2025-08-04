@@ -1,71 +1,80 @@
 import type { Entity } from '../types';
 
-// Global variable for found entity (consider refactoring this to avoid global state)
-let foundEntity: Entity;
+let draggedEntity: Entity | null = null;
 
-export const getFoundEntity = () => foundEntity;
-export const setFoundEntity = (entity: Entity) => {
-  foundEntity = entity;
+export const getDraggedEntity = (): Entity | null => draggedEntity;
+
+export const setDraggedEntity = (entity: Entity | null): void => {
+  draggedEntity = entity;
 };
 
-/**
- * Recursively filters out an entity with the specified ID from the items array
- */
-export function filterEntity(items: Entity[], id: number): Entity[] {
-  const filtered: Entity[] = [];
+export const createPreviewEntity = (entity: Entity, multiplier: number = 50): Entity => ({
+  ...entity,
+  id: entity.id * multiplier,
+  items: [],
+});
 
-  items.forEach((item) => {
-    if (item.id !== id) {
-      if (item.items.length !== 0) {
-        filtered.push({
-          ...item,
-          items: filterEntity(item.items, id),
-        });
-      } else {
-        filtered.push(item);
-      }
+export const isPreviewEntity = (entity: Entity, originalId: number, multiplier: number = 50): boolean => {
+  return entity.id === originalId * multiplier;
+};
+
+export const removeEntityById = (items: Entity[], targetId: number): Entity[] => {
+  return items
+    .filter(item => item.id !== targetId)
+    .map(item => ({
+      ...item,
+      items: removeEntityById(item.items, targetId),
+    }));
+};
+
+
+export const findEntityById = (items: Entity[], targetId: number): Entity | null => {
+  for (const item of items) {
+    if (item.id === targetId) {
+      return item;
     }
-  });
-
-  return filtered;
-}
-
-/**
- * Recursively finds an entity by ID and sets it to foundEntity
- */
-export function findEntity(items: Entity[], id: number): Entity | undefined {
-  for (let index = 0; index < items.length; index++) {
-    const element = items[index];
-    if (element.id === id) {
-      foundEntity = element;
-      return element;
-    } else {
-      const found = findEntity(element.items, id);
-      if (found) return found;
+    
+    const found = findEntityById(item.items, targetId);
+    if (found) {
+      return found;
     }
   }
-  return undefined;
-}
+  return null;
+};
 
-/**
- * Recursively adds a new entity to the specified parent entity by ID
- */
-export function addEntityToParent(items: Entity[], parentId: number, newEntity: Entity): Entity[] {
-  const updated: Entity[] = [];
 
-  items.forEach((item) => {
+export const addEntityToParent = (
+  items: Entity[], 
+  parentId: number, 
+  newEntity: Entity
+): Entity[] => {
+  return items.map(item => {
     if (item.id === parentId) {
-      updated.push({
+      return {
         ...item,
         items: [...item.items, newEntity],
-      });
-    } else {
-      updated.push({
-        ...item,
-        items: addEntityToParent(item.items, parentId, newEntity),
-      });
+      };
     }
+    
+    return {
+      ...item,
+      items: addEntityToParent(item.items, parentId, newEntity),
+    };
   });
+};
 
-  return updated;
-}
+export const moveEntity = (
+  items: Entity[], 
+  sourceId: number, 
+  targetParentId: number
+): Entity[] => {
+  const entityToMove = findEntityById(items, sourceId);
+  
+  if (!entityToMove) {
+    return items;
+  }
+
+  const itemsWithoutSource = removeEntityById(items, sourceId);
+  
+  return addEntityToParent(itemsWithoutSource, targetParentId, entityToMove);
+};

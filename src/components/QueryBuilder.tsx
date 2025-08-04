@@ -1,37 +1,47 @@
+import { useCallback } from 'react';
 import type { Query } from '../types';
 import { EntityItem } from './EntityItem';
 
 interface QueryBuilderProps {
   query: Query;
-  setQuery: React.Dispatch<React.SetStateAction<Query>>;
-  removeHandler: (id: number) => void;
-  addHelper: (id: number) => void;
+  onQueryChange: React.Dispatch<React.SetStateAction<Query>>;
+  onRemoveEntity: (id: number) => void;
+  onAddEntity: (id: number) => void;
   onAddClick: () => void;
 }
 
 export function QueryBuilder({
   query,
-  setQuery,
-  removeHandler,
-  addHelper,
+  onQueryChange,
+  onRemoveEntity,
+  onAddEntity,
   onAddClick,
 }: QueryBuilderProps) {
+  const handleAddClick = useCallback(() => {
+    onAddClick();
+  }, [onAddClick]);
+
+  const hasEntities = query.items.length > 0;
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <header className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">
             {query.title}
           </h1>
           <button
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md border border-gray-300 transition-colors duration-150"
-            onClick={onAddClick}
+            type="button"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md border border-gray-300 transition-colors duration-150 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            onClick={handleAddClick}
+            aria-label="Add new entity"
           >
             <svg
               className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -40,13 +50,13 @@ export function QueryBuilder({
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Add
+            Add Entity
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="p-6">
-        {query.items.length === 0 ? (
+      <main className="p-6">
+        {!hasEntities ? (
           <div className="text-center py-12">
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
@@ -54,6 +64,7 @@ export function QueryBuilder({
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -64,24 +75,24 @@ export function QueryBuilder({
               </svg>
             </div>
             <p className="text-sm text-gray-500">
-              No entities yet. Click "Add" to get started.
+              No entities yet. Click "Add Entity" to get started.
             </p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1" role="list" aria-label="Query entities">
             {query.items.map((entity) => (
               <EntityItem
                 key={entity.id}
                 entity={entity}
-                removeHandler={removeHandler}
-                addHelper={addHelper}
+                onRemove={onRemoveEntity}
+                onAdd={onAddEntity}
                 query={query}
-                setQuery={setQuery}
+                onQueryChange={onQueryChange}
               />
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

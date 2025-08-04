@@ -1,51 +1,59 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { Query } from '../types';
-import { filterEntity } from '../utils/entityUtils';
+import { removeEntityById } from '../utils/entityUtils';
 import { QueryBuilder } from './QueryBuilder';
 import { OpenModal } from './OpenModal';
 
+const INITIAL_QUERY: Query = {
+  title: "Query Builder",
+  items: [],
+} as const;
+
+const INITIAL_ENTITY_ID = 12;
+
 export function useQueryBuilder() {
-  const [currentId, setCurrentId] = useState(12);
-  const [showOpenModal, setShowOpenModal] = useState(false);
-  const [clickedId, setClickedId] = useState<number>(0);
-  const [query, setQuery] = useState<Query>({
-    title: "Query Builder",
-    items: [],
-  });
+  const [currentId, setCurrentId] = useState(INITIAL_ENTITY_ID);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedParentId, setSelectedParentId] = useState<number>(0);
+  const [query, setQuery] = useState<Query>(INITIAL_QUERY);
 
-  const removeHandler = (id: number) => {
-    const filteredQueryItems = filterEntity(query.items, id);
-    setQuery({
-      title: query.title,
-      items: filteredQueryItems,
-    });
-  };
+  const removeEntity = useCallback((id: number) => {
+    setQuery(prevQuery => ({
+      ...prevQuery,
+      items: removeEntityById(prevQuery.items, id),
+    }));
+  }, []);
 
-  const addHelper = (id: number) => {
-    setClickedId(id);
-    setShowOpenModal(true);
-  };
+  const openAddModal = useCallback((parentId: number) => {
+    setSelectedParentId(parentId);
+    setIsModalOpen(true);
+  }, []);
 
-  const handleAddClick = () => {
-    setClickedId(0);
-    setShowOpenModal(true);
-  };
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedParentId(0);
+  }, []);
 
-  const incrementId = () => {
+  const handleAddRootEntity = useCallback(() => {
+    openAddModal(0);
+  }, [openAddModal]);
+
+  const incrementEntityId = useCallback(() => {
     setCurrentId(prev => prev + 1);
-  };
+  }, []);
 
   return {
     query,
     setQuery,
-    showOpenModal,
-    setShowOpenModal,
-    clickedId,
+    isModalOpen,
+    selectedParentId,
     currentId,
-    removeHandler,
-    addHelper,
-    handleAddClick,
-    incrementId,
+    
+    removeEntity,
+    openAddModal,
+    closeModal,
+    handleAddRootEntity,
+    incrementEntityId,
   };
 }
 
@@ -53,36 +61,34 @@ export function QueryBuilderContainer() {
   const {
     query,
     setQuery,
-    showOpenModal,
-    setShowOpenModal,
-    clickedId,
+    isModalOpen,
+    selectedParentId,
     currentId,
-    removeHandler,
-    addHelper,
-    handleAddClick,
-    incrementId,
+    removeEntity,
+    openAddModal,
+    closeModal,
+    handleAddRootEntity,
+    incrementEntityId,
   } = useQueryBuilder();
 
   return (
     <>
       <QueryBuilder
         query={query}
-        setQuery={setQuery}
-        removeHandler={removeHandler}
-        addHelper={addHelper}
-        onAddClick={handleAddClick}
+        onQueryChange={setQuery}
+        onRemoveEntity={removeEntity}
+        onAddEntity={openAddModal}
+        onAddClick={handleAddRootEntity}
       />
 
-      {showOpenModal && (
-        <OpenModal
-          setShowOpenModal={setShowOpenModal}
-          query={query}
-          setQuery={setQuery}
-          clickedID={clickedId}
-          currentId={currentId}
-          onIdIncrement={incrementId}
-        />
-      )}
+      <OpenModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onQueryChange={setQuery}
+        parentId={selectedParentId}
+        nextEntityId={currentId + 1}
+        onEntityCreated={incrementEntityId}
+      />
     </>
   );
 }

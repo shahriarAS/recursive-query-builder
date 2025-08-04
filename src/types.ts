@@ -1,4 +1,3 @@
-// Types
 export type EntityType = "GROUP" | "CONDITION";
 export type ConditionType = "AND" | "OR";
 
